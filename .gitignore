@@ -1,11 +1,6 @@
-node_modules
-.env
-coverage
-coverage.json
-typechain
-
-#Hardhat files
-cache
-artifacts
-
 .idea
+truffle-config.js
+node_modules
+build
+dev.txt
+.env

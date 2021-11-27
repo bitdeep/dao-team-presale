@@ -52,33 +52,32 @@ contract TeamPresale is Ownable {
     constructor(IERC20 token) {
         presaleStart = block.timestamp;
         presaleEnd = presaleStart + 7 days;
-        vestStart = block.timestamp + 30 days;
+        vestStart = presaleEnd + 30 days;
         TOKEN = token;
     }
+
     receive() external payable {
-        // require(msg.value > 100000000000000000, "Insufficient funds sent");
+        require(msg.value > 100000000000000000, "Insufficient funds sent");
         require(whitelist[msg.sender], "Not whitelisted");
-        // require(presaleStart <= block.timestamp, "The offering has not started yet");
-        // require(block.timestamp <= presaleEnd, "The offering has already ended");
-        // totalProvided += msg.value;
-        // uint amount = (msg.value / 1e9) / presalePrice;
-        uint amount = msg.value;
-        // require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
+        require(presaleStart <= block.timestamp, "The offering has not started yet");
+        require(block.timestamp < presaleEnd, "The offering has already ended");
+        totalProvided += msg.value;
+        uint amount = ((msg.value * 1e18) / presalePrice) / 1e9;
+
+        require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
         tokens[msg.sender] += amount;
         emit Received(msg.sender, msg.value);
     }
-    function getTimestamp() public view returns(uint){
+
+    function getTimestamp() public view returns (uint){
         return block.timestamp;
     }
+
     function claim() external {
-        require(block.timestamp > presaleEnd, "Claim period ended");
+        require(whitelist[msg.sender], "Not whitelisted");
         require(tokens[msg.sender] > 0, "No tokens to claim");
         uint amountTotal = tokens[msg.sender];
-
-        // only 50%
         uint amount = amountTotal / 2;
-
-        // vest 50%
         vest[msg.sender] += amount;
         tokens[msg.sender] = 0;
         TOKEN.safeTransfer(msg.sender, amount);
@@ -86,6 +85,7 @@ contract TeamPresale is Ownable {
     }
 
     function release() external {
+        require(whitelist[msg.sender], "Not whitelisted");
         address beneficiary = msg.sender;
         uint256 releasable = vestedAmount(beneficiary, uint64(block.timestamp)) - released[beneficiary];
         released[beneficiary] += releasable;
@@ -125,4 +125,16 @@ contract TeamPresale is Ownable {
         emit Whitelist(_wallet, _status);
     }
 
+    function getChainId() public view returns (uint) {
+        uint256 chainId;
+        assembly {chainId := chainid()}
+        return chainId;
+    }
+    // to test vest, must be commented
+    function resetVest() external onlyOwner {
+        // revert if not on test env
+        // ATTENTION: FTM is 250
+        require(getChainId() == 1, "only test env");
+        vestStart = block.timestamp - 30 days;
+    }
 }
