@@ -17,29 +17,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 /**
  * @author bitdeep
  * @title SPECTRE DAO Initial Team Offering
  * @notice some description
  */
-contract teamPresale is Ownable {
+contract TeamPresale is Ownable {
     using SafeERC20 for IERC20;
     event Claimed(address indexed account, uint amountTotal, uint vested);
     event Released(address indexed account, uint releasable);
     event Received(address indexed account, uint amount);
     event Whitelist(address indexed account, bool status);
 
-    uint public PRICE = 20 ether; // 20 FTM
-    uint public START;
-    uint public END;
+    uint public presalePrice = 20 ether; // 20 FTM
+    uint public presaleStart;
+    uint public presaleEnd;
     uint public vestStart;
     uint public totalProvided = 0;
     mapping(address => bool) public whitelist;
@@ -50,25 +50,28 @@ contract teamPresale is Ownable {
     uint64 private immutable duration = 30 days * 6; // ~ 6 months
 
     constructor(IERC20 token) {
-        START = block.number;
-        END = START + 7 days;
-        vestStart = END + 30 days;
+        presaleStart = block.timestamp;
+        presaleEnd = presaleStart + 7 days;
+        vestStart = block.timestamp + 30 days;
         TOKEN = token;
     }
     receive() external payable {
-        require(msg.value > 100000000000000000, "Insufficient funds sent");
+        // require(msg.value > 100000000000000000, "Insufficient funds sent");
         require(whitelist[msg.sender], "Not whitelisted");
-        require(START <= block.timestamp, "The offering has not started yet");
-        require(block.timestamp <= END, "The offering has already ended");
-        totalProvided += msg.value;
-        uint amount = (msg.value / 1e9) / PRICE;
-        require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
+        // require(presaleStart <= block.timestamp, "The offering has not started yet");
+        // require(block.timestamp <= presaleEnd, "The offering has already ended");
+        // totalProvided += msg.value;
+        // uint amount = (msg.value / 1e9) / presalePrice;
+        uint amount = msg.value;
+        // require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
         tokens[msg.sender] += amount;
         emit Received(msg.sender, msg.value);
     }
-
+    function getTimestamp() public view returns(uint){
+        return block.timestamp;
+    }
     function claim() external {
-        require(block.timestamp > END, "Claim period ended");
+        require(block.timestamp > presaleEnd, "Claim period ended");
         require(tokens[msg.sender] > 0, "No tokens to claim");
         uint amountTotal = tokens[msg.sender];
 
@@ -109,12 +112,12 @@ contract teamPresale is Ownable {
     }
 
     function setStartEnd(uint _start, uint _end) external onlyOwner {
-        START = _start;
-        END = _end;
+        presaleStart = _start;
+        presaleEnd = _end;
     }
 
     function setPrice(uint _val) external onlyOwner {
-        PRICE = _val;
+        presalePrice = _val;
     }
 
     function setWhitelistStatus(address _wallet, bool _status) external onlyOwner {
