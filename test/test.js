@@ -106,11 +106,14 @@ describe("TeamPresale", function () {
             const ftmAmount = toWei('20');
             await this.presale.setWhitelistStatus(dev, true, {from: dev});
             await this.presale.sendTransaction({from: dev, value: ftmAmount});
+            let presaleMaxAllocation = (await this.presale.presaleMaxAllocation()).toString();
             let tokens = (await this.presale.tokens(dev)).toString();
             const presalePrice = (await this.presale.presalePrice()).toString();
             expect(fromWei(ftmAmount)).to.be.equal('20');
             expect(fromWei(presalePrice)).to.be.equal('20');
             expect(fromGwei(tokens)).to.be.equal('1');
+            yellow('tokens='+tokens)
+            yellow('presaleMaxAllocation='+presaleMaxAllocation)
             let getTimestamp = await this.presale.getTimestamp();
             await this.presale.claim({from: dev});
             const vest = (await this.presale.vest(dev)).toString();
