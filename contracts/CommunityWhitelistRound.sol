@@ -27,21 +27,23 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @author bitdeep
- * @title SPECTRE DAO Initial Team Offering
+ * @title SPECTRE DAO Community Whitelist Round
  * @notice some description
  */
-contract TeamPresale is Ownable {
+contract CommunityWhitelistRound is Ownable {
     using SafeERC20 for IERC20;
     event Claimed(address indexed account, uint amountTotal, uint vested);
     event Released(address indexed account, uint releasable);
     event Received(address indexed account, uint amount);
     event Whitelist(address indexed account, bool status);
 
-    uint public presalePrice = 20 ether; // 20 FTM
+    uint public presalePrice = 25 ether; // 25 FTM
+    uint public presaleLimit = 40e9; // max of 40 tokens
     uint public presaleStart;
     uint public presaleEnd;
     uint public vestStart;
     uint public totalProvided = 0;
+    uint public totalWhiteListed = 0;
     mapping(address => bool) public whitelist;
     mapping(address => uint) public tokens;
     mapping(address => uint) public vest;
@@ -50,9 +52,6 @@ contract TeamPresale is Ownable {
     uint64 private immutable duration = 30 days * 6; // ~ 6 months
 
     constructor(IERC20 token) {
-        presaleStart = block.timestamp;
-        presaleEnd = presaleStart + 7 days;
-        vestStart = presaleEnd + 30 days;
         TOKEN = token;
     }
 
@@ -63,17 +62,14 @@ contract TeamPresale is Ownable {
         require(block.timestamp < presaleEnd, "The offering has already ended");
         totalProvided += msg.value;
         uint amount = ((msg.value * 1e18) / presalePrice) / 1e9;
-
+        require(amount <= presaleLimit,"Max of 40 GHAST per user");
         require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
         tokens[msg.sender] += amount;
         emit Received(msg.sender, msg.value);
     }
 
-    function getTimestamp() public view returns (uint){
-        return block.timestamp;
-    }
-
     function claim() external {
+        require(block.timestamp >= presaleEnd, "Claim not open yet");
         require(whitelist[msg.sender], "Not whitelisted");
         require(tokens[msg.sender] > 0, "No tokens to claim");
         uint amountTotal = tokens[msg.sender];
@@ -114,6 +110,7 @@ contract TeamPresale is Ownable {
     function setStartEnd(uint _start, uint _end) external onlyOwner {
         presaleStart = _start;
         presaleEnd = _end;
+        vestStart = presaleEnd + 30 days;
     }
 
     function setPrice(uint _val) external onlyOwner {
@@ -122,6 +119,9 @@ contract TeamPresale is Ownable {
 
     function setWhitelistStatus(address _wallet, bool _status) external onlyOwner {
         whitelist[_wallet] = _status;
+        if (_status) totalWhiteListed++;
+        else totalWhiteListed--;
+        require(totalWhiteListed <= 1500, "1500 whitelisted users only");
         emit Whitelist(_wallet, _status);
     }
 
@@ -131,10 +131,14 @@ contract TeamPresale is Ownable {
         return chainId;
     }
     // to test vest, must be commented
-    function resetVest() external onlyOwner {
+    function devEnvReconfigureValues(uint _vestStart) external onlyOwner {
         // revert if not on test env
         // ATTENTION: FTM is 250
         require(getChainId() == 1, "only test env");
-        vestStart = block.timestamp - 30 days;
+        vestStart = _vestStart;
     }
+    function getTimestamp() public view returns (uint){
+        return block.timestamp;
+    }
+
 }

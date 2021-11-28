@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "test": "truffle test test/test.js --network dev --bail",
-    "live": "truffle compile --all --network dev && nodemon --exec yarn test -e sol,js"
+    "test-ts": "truffle test test/TeamSeed.js --network dev --bail",
+    "test-cwr": "truffle test test/CommunityWhitelistRound.js --network dev --bail",
+    "live": "truffle compile --all --network dev && nodemon --exec yarn test-cwr -e sol,js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.0",

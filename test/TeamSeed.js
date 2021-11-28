@@ -43,16 +43,16 @@ let user, dev;
 const ONE = toWei('1');
 
 const SpectreERC20Token = contract.fromArtifact('SpectreERC20Token');
-const TeamPresale = contract.fromArtifact('TeamPresale');
+const TeamSeed = contract.fromArtifact('TeamSeed');
 
-describe("TeamPresale", function () {
+describe("TeamSeed", function () {
     beforeEach(async function () {
         this.timeout(0);
         dev = accounts[0];
         user = accounts[1];
 
         this.token = await SpectreERC20Token.new({from: dev});
-        this.presale = await TeamPresale.new(this.token.address, {from: dev});
+        this.presale = await TeamSeed.new(this.token.address, {from: dev});
         await this.token.mint(dev, toWei('5'), {from: dev});
         await this.token.transfer(this.presale.address, toWei('5'), {from: dev});
 
