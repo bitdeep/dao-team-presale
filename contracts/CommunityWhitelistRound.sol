@@ -62,9 +62,9 @@ contract CommunityWhitelistRound is Ownable {
         require(block.timestamp < presaleEnd, "The offering has already ended");
         totalProvided += msg.value;
         uint amount = ((msg.value * 1e18) / presalePrice) / 1e9;
-        require(amount <= presaleLimit,"Max of 40 GHAST per user");
         require(amount <= TOKEN.balanceOf(address(this)), "Insufficient contract balance");
         tokens[msg.sender] += amount;
+        require(tokens[msg.sender] <= presaleLimit,"Max of 40 GHAST per user");
         emit Received(msg.sender, msg.value);
     }
 
