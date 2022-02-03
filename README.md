@@ -29,7 +29,7 @@ From time to time user can call `release()` to get released tokens from vest.
 
 # CommunityWhitelistRound
 
-- CommunityWhitelistRound `0x77201DF3C5aB5828708Ffcbf5481B8B32cf00ad7`
+- CommunityWhitelistRound ftm testnet `0x77201DF3C5aB5828708Ffcbf5481B8B32cf00ad7`
 
 ## How to test
 
