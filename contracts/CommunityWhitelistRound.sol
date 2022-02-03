@@ -708,7 +708,8 @@ contract CommunityWhitelistRound is Ownable {
     mapping(address => uint) public vest;
     mapping(address => uint) public released;
     IERC20 public immutable TOKEN;
-    uint64 private immutable duration = 30 days * 6; // ~ 6 months
+    uint64 public duration = 30 days * 6; // ~ 6 months
+    // uint64 private immutable duration = 30 days * 6; // ~ 6 months
 
     constructor(IERC20 token) public {
         TOKEN = token;
@@ -742,6 +743,7 @@ contract CommunityWhitelistRound is Ownable {
 
     function release() external {
         require(whitelist[msg.sender], "Not whitelisted");
+        require(tokens[msg.sender] >= released[msg.sender], "No more tokens to release");
         address beneficiary = msg.sender;
         uint256 releasable = vestedAmount(beneficiary, uint64(block.timestamp)) - released[beneficiary];
         released[beneficiary] += releasable;
@@ -775,6 +777,9 @@ contract CommunityWhitelistRound is Ownable {
 
     function setPrice(uint _val) external onlyOwner {
         presalePrice = _val;
+    }
+    function setDuration(uint64 _val) external onlyOwner {
+        duration = _val;
     }
 
     function setWhitelistStatus(address _wallet, bool _status) external onlyOwner {

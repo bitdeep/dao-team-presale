@@ -114,6 +114,7 @@ describe("TeamSeed", function () {
             yellow('tokens='+tokens)
             let getTimestamp = await this.presale.getTimestamp();
             await this.presale.claim({from: dev});
+            await expectRevert(this.presale.claim({from: dev}),'No tokens to claim');
             const vest = (await this.presale.vest(dev)).toString();
             tokens = (await this.presale.tokens(dev)).toString();
             let vestedAmount = (await this.presale.vestedAmount(dev, getTimestamp)).toString();
@@ -133,12 +134,18 @@ describe("TeamSeed", function () {
             getTimestamp = await this.presale.getTimestamp();
             vestedAmount = (await this.presale.vestedAmount(dev, getTimestamp)).toString();
             await this.presale.release({from: dev});
+            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
+            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
+            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
+            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
             receivedTokens = (await this.token.balanceOf(dev)).toString();
 
             expect(fromGwei(vestedAmount)).to.be.equal('0.083333333');
-            expect(fromGwei(receivedTokens)).to.be.equal('0.583333333');
+            expect(fromGwei(receivedTokens)).to.be.equal('0.583333365');
 
-            console.log('receivedTokens'+fromGwei(receivedTokens));
+            await this.presale.setDuration(86400 * 7 )
+
+            console.log('receivedTokens='+fromGwei(receivedTokens));
 
         });
     });

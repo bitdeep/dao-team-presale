@@ -5,7 +5,7 @@
   "scripts": {
     "test-ts": "truffle test test/TeamSeed.js --network dev --bail",
     "test-cwr": "truffle test test/CommunityWhitelistRound.js --network dev --bail",
-    "live": "truffle compile --all --network dev && nodemon --exec yarn test-cwr -e sol,js"
+    "live": "truffle compile --all --network dev && nodemon --exec yarn test-ts -e sol,js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.2.0",
