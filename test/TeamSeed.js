@@ -111,7 +111,7 @@ describe("TeamSeed", function () {
             expect(fromWei(ftmAmount)).to.be.equal('20');
             expect(fromWei(presalePrice)).to.be.equal('20');
             expect(fromGwei(tokens)).to.be.equal('1');
-            yellow('tokens='+tokens)
+            // yellow('tokens='+tokens)
             let getTimestamp = await this.presale.getTimestamp();
             await this.presale.claim({from: dev});
             await expectRevert(this.presale.claim({from: dev}),'No tokens to claim');
@@ -134,18 +134,20 @@ describe("TeamSeed", function () {
             getTimestamp = await this.presale.getTimestamp();
             vestedAmount = (await this.presale.vestedAmount(dev, getTimestamp)).toString();
             await this.presale.release({from: dev});
-            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
-            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
-            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
-            await expectRevert(this.presale.release({from: dev}),'No more tokens to release');
             receivedTokens = (await this.token.balanceOf(dev)).toString();
 
             expect(fromGwei(vestedAmount)).to.be.equal('0.083333333');
             expect(fromGwei(receivedTokens)).to.be.equal('0.583333365');
 
-            await this.presale.setDuration(86400 * 7 )
+            await this.presale.setDuration(86400 * 8, {from: dev})
 
-            console.log('receivedTokens='+fromGwei(receivedTokens));
+            await this.presale.release({from: dev});
+            await this.presale.release({from: dev});
+            expect(fromGwei((await this.token.balanceOf(dev)).toString())).to.be.equal('1');
+            expect(fromGwei((await this.presale.vest(dev)).toString())).to.be.equal('0.5');
+            expect(fromGwei((await this.presale.released(dev)).toString())).to.be.equal('0.5');
+
+            // console.log('receivedTokens='+fromGwei(receivedTokens));
 
         });
     });

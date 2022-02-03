@@ -694,6 +694,7 @@ contract TeamSeed is Ownable {
     uint public presaleEnd;
     uint public vestStart;
     uint public totalProvided = 0;
+    uint statsWhitelisted;
     mapping(address => bool) public whitelist;
     mapping(address => uint) public tokens;
     mapping(address => uint) public vest;
@@ -738,25 +739,29 @@ contract TeamSeed is Ownable {
 
     function release() external {
         require(whitelist[msg.sender], "Not whitelisted");
-        require(tokens[msg.sender] >= released[msg.sender], "No more tokens to release");
+        require(vest[msg.sender] >= released[msg.sender], "No more tokens to release");
         address beneficiary = msg.sender;
-        uint256 releasable = vestedAmount(beneficiary, uint64(block.timestamp)) - released[beneficiary];
+        uint256 releasable = vestedAmount(beneficiary, block.timestamp) - released[beneficiary];
+        if( released[beneficiary].add(releasable) > vest[msg.sender] ){
+            releasable = vest[msg.sender].sub(released[beneficiary]);
+        }
         released[beneficiary] += releasable;
         TOKEN.safeTransfer(beneficiary, releasable);
         emit Released(beneficiary, releasable);
     }
 
-    function vestedAmount(address user, uint64 timestamp) public view virtual returns (uint256) {
+    function vestedAmount(address user, uint256 timestamp) public view virtual returns (uint256) {
         return _vestingSchedule(vest[user] + released[user], timestamp);
     }
 
-    function _vestingSchedule(uint256 totalAllocation, uint64 timestamp) internal view virtual returns (uint256) {
+    function _vestingSchedule(uint256 totalAllocation, uint256 timestamp) internal view virtual returns (uint256) {
         if (timestamp < vestStart) {
             return 0;
         } else if (timestamp > vestStart + duration) {
             return totalAllocation;
         } else {
-            return (totalAllocation * (timestamp - vestStart)) / duration;
+            // return (totalAllocation * (timestamp - vestStart)) / duration;
+            return totalAllocation.mul(timestamp.sub(vestStart)).div(duration);
         }
     }
 
@@ -778,7 +783,14 @@ contract TeamSeed is Ownable {
 
     function setWhitelistStatus(address _wallet, bool _status) external onlyOwner {
         whitelist[_wallet] = _status;
+        if(_status) statsWhitelisted++;
         emit Whitelist(_wallet, _status);
+    }
+    function whitelistMultiple(address[] memory _user, bool _status) external onlyOwner {
+        if(_status) statsWhitelisted += _user.length;
+        for( uint i = 0 ; i < _user.length ; i ++ ){
+            whitelist[ _user[i] ] = _status;
+        }
     }
 
     function getChainId() public view returns (uint) {
