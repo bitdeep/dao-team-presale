@@ -42,7 +42,7 @@ const fromGwei = function (v) {
 let user, dev;
 const ONE = toWei('1');
 
-const SpectreERC20Token = contract.fromArtifact('SpectreERC20Token');
+const Token = contract.fromArtifact('Token');
 const CommunityWhitelistRound = contract.fromArtifact('CommunityWhitelistRound');
 
 describe("CommunityWhitelistRound", function () {
@@ -51,7 +51,7 @@ describe("CommunityWhitelistRound", function () {
         dev = accounts[0];
         user = accounts[1];
 
-        this.token = await SpectreERC20Token.new({from: dev});
+        this.token = await Token.new("test","test",{from: dev});
         this.preSale = await CommunityWhitelistRound.new(this.token.address, {from: dev});
         await this.token.mint(dev, toWei('5'), {from: dev});
         await this.token.transfer(this.preSale.address, toWei('5'), {from: dev});

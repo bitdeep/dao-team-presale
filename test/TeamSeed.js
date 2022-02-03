@@ -42,7 +42,7 @@ const fromGwei = function (v) {
 let user, dev;
 const ONE = toWei('1');
 
-const SpectreERC20Token = contract.fromArtifact('SpectreERC20Token');
+const Token = contract.fromArtifact('Token');
 const TeamSeed = contract.fromArtifact('TeamSeed');
 
 describe("TeamSeed", function () {
@@ -51,7 +51,7 @@ describe("TeamSeed", function () {
         dev = accounts[0];
         user = accounts[1];
 
-        this.token = await SpectreERC20Token.new({from: dev});
+        this.token = await Token.new("test","test",{from: dev});
         this.presale = await TeamSeed.new(this.token.address, {from: dev});
         await this.token.mint(dev, toWei('5'), {from: dev});
         await this.token.transfer(this.presale.address, toWei('5'), {from: dev});
@@ -106,14 +106,12 @@ describe("TeamSeed", function () {
             const ftmAmount = toWei('20');
             await this.presale.setWhitelistStatus(dev, true, {from: dev});
             await this.presale.sendTransaction({from: dev, value: ftmAmount});
-            let presaleMaxAllocation = (await this.presale.presaleMaxAllocation()).toString();
             let tokens = (await this.presale.tokens(dev)).toString();
             const presalePrice = (await this.presale.presalePrice()).toString();
             expect(fromWei(ftmAmount)).to.be.equal('20');
             expect(fromWei(presalePrice)).to.be.equal('20');
             expect(fromGwei(tokens)).to.be.equal('1');
             yellow('tokens='+tokens)
-            yellow('presaleMaxAllocation='+presaleMaxAllocation)
             let getTimestamp = await this.presale.getTimestamp();
             await this.presale.claim({from: dev});
             const vest = (await this.presale.vest(dev)).toString();
@@ -138,7 +136,7 @@ describe("TeamSeed", function () {
             receivedTokens = (await this.token.balanceOf(dev)).toString();
 
             expect(fromGwei(vestedAmount)).to.be.equal('0.083333333');
-            expect(fromGwei(receivedTokens)).to.be.equal('0.583333365');
+            expect(fromGwei(receivedTokens)).to.be.equal('0.583333333');
 
             console.log('receivedTokens'+fromGwei(receivedTokens));
 
